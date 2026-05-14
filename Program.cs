@@ -8,6 +8,7 @@ using FuelTrack.Api.Features.Payments.Domain;
 using FuelTrack.Api.Features.Payments.Data;
 using FuelTrack.Api.Features.Profile.Domain;
 using FuelTrack.Api.Features.Profile.Data;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +16,24 @@ var builder = WebApplication.CreateBuilder(args);
 // Docker y Render asignarán el puerto automáticamente (8080).
 
 // Registramos servicios MVC / Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("LocalFrontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -36,7 +54,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseStaticFiles(); 
+app.UseStaticFiles();
+app.UseCors("LocalFrontend");
 
 // app.UseHttpsRedirection(); // A veces es mejor comentar esto en Render si hay problemas de redirección, pero dejémoslo por ahora.
 app.UseAuthorization();

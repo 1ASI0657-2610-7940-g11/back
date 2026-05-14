@@ -4,7 +4,16 @@ namespace FuelTrack.Api.Features.Auth.Data;
 
 public class InMemoryAuthRepository : IAuthRepository
 {
-    private readonly List<AuthUser> _users = new();
+    private readonly List<AuthUser> _users = new()
+    {
+        new AuthUser
+        {
+            Id = "demo-client",
+            FullName = "Cliente FuelTrack SAC",
+            Email = "cliente@fueltrack.com",
+            Password = "123456"
+        }
+    };
 
     public Task<AuthResult> RegisterAsync(RegisterRequest request)
     {
