@@ -25,11 +25,17 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("LocalFrontend", policy =>
     {
-        policy
-            .WithOrigins(
+        var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?
+            .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? new[]
+            {
                 "http://localhost:5173",
-                "http://127.0.0.1:5173"
-            )
+                "http://127.0.0.1:5173",
+                "https://1asi0657-2610-7940-g11.github.io"
+            };
+
+        policy
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

@@ -1,5 +1,5 @@
 # Etapa 1: Construcción (Build)
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 
 # Copiar el archivo de proyecto y restaurar dependencias
@@ -11,7 +11,7 @@ COPY . .
 RUN dotnet publish "FuelTrack.Api.csproj" -c Release -o /app/publish
 
 # Etapa 2: Ejecución (Runtime)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
