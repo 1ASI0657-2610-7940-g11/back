@@ -134,12 +134,8 @@ var app = builder.Build();
 
 await DatabaseMigrator.ApplyMigrationsAsync(app.Services, app.Logger);
 
-if (builder.Environment.IsDevelopment()
-    || builder.Configuration.GetValue<bool>("ENABLE_SWAGGER"))
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("Frontend");
 app.UseAuthentication();

@@ -43,8 +43,10 @@ JWT_AUDIENCE=FuelTrack.Web
 JWT_EXPIRATION_MINUTES=120
 ALLOWED_ORIGINS=https://front-38m.pages.dev
 ASPNETCORE_ENVIRONMENT=Production
-ENABLE_SWAGGER=false
+ENABLE_SWAGGER=true
 ```
+
+Swagger queda disponible públicamente en `/swagger`.
 
 No configures `PORT`: Railway lo proporciona. La API escucha en
 `0.0.0.0:$PORT`. Después del despliegue, genera un dominio público y comprueba
