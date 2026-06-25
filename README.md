@@ -1,77 +1,66 @@
-# FuelTrack Backend
+# FuelTrack API
 
-## Overview
+API ASP.NET Core 10 preparada para Railway y MySQL. La aplicación aplica las
+migraciones EF Core al arrancar, usa JWT y separa pedidos, perfil y pagos por
+usuario.
 
-FuelTrack Backend is a monolithic RESTful API developed with ASP.NET Core. It provides the backend services required by the FuelTrack platform, including authentication, orders, payments, and other business functionalities.
+## Desarrollo local
 
-The application is containerized using Docker and deployed on Render.
+Requisitos:
 
----
+- .NET SDK 10
+- MySQL 8
 
-## Technologies
+Copia `.env.example` a una configuración local no versionada o define las
+variables en la terminal. En desarrollo, si no defines `MYSQL*`, la API intenta
+usar `localhost:3306`, usuario `root` y base `fueltrack`.
 
-- ASP.NET Core 7
-- C#
-- Docker
-- Swagger / OpenAPI
-- Render
-- GitHub
-
----
-
-## Deployment
-
-The backend was deployed using Render as a Docker-based Web Service.
-
-### Deployment Steps
-
-1. Push the backend source code to GitHub.
-2. Create a new **Web Service** in Render.
-3. Connect the GitHub repository.
-4. Select the repository:
-
-   ```text
-   1ASI0657-2610-7940-g11/back
-   ```
-
-5. Configure the service:
-
-   ```text
-   Name: back
-   Runtime: Docker
-   Branch: main
-   Instance Type: Free
-   ```
-
-6. Render automatically detects the `Dockerfile`.
-7. Click **Deploy Web Service**.
-8. Wait for the build and deployment process to finish.
-9. Verify the deployment through the Render logs.
-10. Access the deployed API and Swagger documentation.
-
----
-
-## Deployment Evidence
-
-The deployment was completed successfully in Render.
-
-The logs confirmed:
-
-```text
-Application started.
-Hosting environment: Production
-Content root path: /app
-Your service is live
+```powershell
+dotnet restore
+dotnet run
 ```
 
----
+La base debe existir; las tablas se crean automáticamente mediante la migración
+inicial. Swagger está disponible en `/swagger` únicamente en Development, salvo
+que `ENABLE_SWAGGER=true`.
 
-## Live Backend URL
+## Despliegue en Railway
 
-```text
-https://back-7eu8.onrender.com
+1. Crea un proyecto Railway y agrega un servicio MySQL vacío.
+2. Agrega este repositorio como servicio de API. Railway detectará el
+   `Dockerfile` y `railway.json`.
+3. Configura en la API:
+
+```env
+MYSQLHOST=${{MySQL.MYSQLHOST}}
+MYSQLPORT=${{MySQL.MYSQLPORT}}
+MYSQLUSER=${{MySQL.MYSQLUSER}}
+MYSQLPASSWORD=${{MySQL.MYSQLPASSWORD}}
+MYSQLDATABASE=${{MySQL.MYSQLDATABASE}}
+JWT_SECRET=<secreto-aleatorio-de-64-caracteres-o-mas>
+JWT_ISSUER=FuelTrack.Api
+JWT_AUDIENCE=FuelTrack.Web
+JWT_EXPIRATION_MINUTES=120
+ALLOWED_ORIGINS=https://<proyecto>.pages.dev
+ASPNETCORE_ENVIRONMENT=Production
+ENABLE_SWAGGER=false
 ```
 
-Backend:
+No configures `PORT`: Railway lo proporciona. La API escucha en
+`0.0.0.0:$PORT`. Después del despliegue, genera un dominio público y comprueba
+`https://<backend>.up.railway.app/health`.
 
-https://back-7eu8.onrender.com
+Para generar `JWT_SECRET` en PowerShell:
+
+```powershell
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(64))
+```
+
+## Seguridad y datos
+
+- No hay datos iniciales ni cuenta demo.
+- Las contraseñas se almacenan con PBKDF2-SHA256.
+- Los métodos de pago son superficiales: solo se guardan marca, titular,
+  vencimiento y últimos cuatro dígitos.
+- Los avatares JPEG, PNG o WEBP se almacenan en MySQL con límite de 2 MB.
+- El frontend nunca se conecta directamente a MySQL.

@@ -1,11 +1,12 @@
 using FuelTrack.Api.Features.Payments.Domain;
+using FuelTrack.Api.Infrastructure.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FuelTrack.Api.Features.Payments.Api;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PaymentsController : ControllerBase
+public sealed class PaymentsController : ControllerBase
 {
     private readonly IPaymentsRepository _repository;
 
@@ -14,31 +15,42 @@ public class PaymentsController : ControllerBase
         _repository = repository;
     }
 
-    // GET api/payments/methods
     [HttpGet("methods")]
     public async Task<ActionResult<IEnumerable<PaymentMethod>>> GetPaymentMethods()
     {
-        var methods = await _repository.GetPaymentMethodsAsync();
-        return Ok(methods);
+        return Ok(await _repository.GetPaymentMethodsAsync(User.GetRequiredUserId()));
     }
 
-    // POST api/payments/methods
     [HttpPost("methods")]
     public async Task<ActionResult<PaymentMethod>> AddPaymentMethod(
         [FromBody] NewPaymentMethodRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        if (string.IsNullOrWhiteSpace(request.Brand)
+            || string.IsNullOrWhiteSpace(request.CardNumber)
+            || string.IsNullOrWhiteSpace(request.Holder)
+            || string.IsNullOrWhiteSpace(request.Expires))
+        {
+            return BadRequest(new { message = "Completa todos los datos del método." });
+        }
 
-        var method = await _repository.AddPaymentMethodAsync(request);
-        return CreatedAtAction(nameof(GetPaymentMethods), new { id = method.Id }, method);
+        try
+        {
+            var method = await _repository.AddPaymentMethodAsync(
+                User.GetRequiredUserId(), request);
+            return CreatedAtAction(nameof(GetPaymentMethods), new { id = method.Id }, method);
+        }
+        catch (ArgumentException ex) when (ex.Message == "CARD_NUMBER_INVALID")
+        {
+            return BadRequest(new
+            {
+                message = "El número debe contener al menos cuatro dígitos."
+            });
+        }
     }
 
-    // GET api/payments/history
     [HttpGet("history")]
     public async Task<ActionResult<IEnumerable<PaymentHistory>>> GetPaymentHistory()
     {
-        var history = await _repository.GetPaymentHistoryAsync();
-        return Ok(history);
+        return Ok(await _repository.GetPaymentHistoryAsync(User.GetRequiredUserId()));
     }
 }

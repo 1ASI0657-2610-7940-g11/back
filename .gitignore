@@ -1,5 +1,6 @@
 bin/
 obj/
+TestResults/
 *.user
 *.suo
 *.userosscache
@@ -7,3 +8,6 @@ obj/
 .vs/
 .idea/
 *.log
+.env
+.env.*
+!.env.example

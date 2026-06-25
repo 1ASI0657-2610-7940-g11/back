@@ -1,33 +1,25 @@
-using System.Threading;
-using System.Threading.Tasks;
 using FuelTrack.Api.Features.Home.Domain;
+using FuelTrack.Api.Infrastructure.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FuelTrack.Api.Features.Home.Api;
 
 [ApiController]
 [Route("api/client")]
-public class HomeController : ControllerBase
+public sealed class HomeController : ControllerBase
 {
-    private readonly IHomeRepository _homeRepository;
+    private readonly IHomeRepository _repository;
 
-    public HomeController(IHomeRepository homeRepository)
+    public HomeController(IHomeRepository repository)
     {
-        _homeRepository = homeRepository;
+        _repository = repository;
     }
 
-    // Coincide con tu HomeApi de Android: @GET("client/dashboard")
     [HttpGet("dashboard")]
     public async Task<ActionResult<DashboardSummary>> GetDashboard(
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
-        var dashboard = await _homeRepository.GetDashboardAsync(
-            clientId: null,
-            cancellationToken: cancellationToken
-        );
-
-        return Ok(dashboard);
+        return Ok(await _repository.GetDashboardAsync(
+            User.GetRequiredUserId(), cancellationToken));
     }
-
 }

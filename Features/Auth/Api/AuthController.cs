@@ -1,11 +1,13 @@
 using FuelTrack.Api.Features.Auth.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FuelTrack.Api.Features.Auth.Api;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+[AllowAnonymous]
+public sealed class AuthController : ControllerBase
 {
     private readonly IAuthRepository _repository;
 
@@ -14,32 +16,42 @@ public class AuthController : ControllerBase
         _repository = repository;
     }
 
-    // POST api/auth/register
     [HttpPost("register")]
     public async Task<ActionResult<AuthResult>> Register([FromBody] RegisterRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.FullName)
+            || string.IsNullOrWhiteSpace(request.Email)
+            || string.IsNullOrEmpty(request.Password)
+            || request.Password.Length < 8)
+        {
+            return BadRequest(new
+            {
+                message = "Nombre y correo son obligatorios; la contraseña debe tener al menos 8 caracteres."
+            });
+        }
+
         try
         {
-            var result = await _repository.RegisterAsync(request);
-            return Ok(result);
+            return Ok(await _repository.RegisterAsync(request));
         }
         catch (InvalidOperationException ex) when (ex.Message == "EMAIL_ALREADY_EXISTS")
         {
-            return BadRequest(new { message = "El correo ya está registrado" });
+            return Conflict(new { message = "El correo ya está registrado." });
         }
     }
 
-    // POST api/auth/login
     [HttpPost("login")]
     public async Task<ActionResult<AuthResult>> Login([FromBody] LoginRequest request)
     {
-        var result = await _repository.LoginAsync(request);
-
-        if (result is null)
+        if (string.IsNullOrWhiteSpace(request.Email)
+            || string.IsNullOrEmpty(request.Password))
         {
-            return Unauthorized();
+            return BadRequest(new { message = "Correo y contraseña son obligatorios." });
         }
 
-        return Ok(result);
+        var result = await _repository.LoginAsync(request);
+        return result is null
+            ? Unauthorized(new { message = "Correo o contraseña incorrectos." })
+            : Ok(result);
     }
 }

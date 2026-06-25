@@ -6,7 +6,7 @@ namespace FuelTrack.Api.Features.Home.Domain;
 public interface IHomeRepository
 {
     Task<DashboardSummary> GetDashboardAsync(
-        string? clientId,
+        string userId,
         CancellationToken cancellationToken = default
     );
 }
