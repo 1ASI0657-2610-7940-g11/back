@@ -41,14 +41,24 @@ JWT_SECRET=<secreto-aleatorio-de-64-caracteres-o-mas>
 JWT_ISSUER=FuelTrack.Api
 JWT_AUDIENCE=FuelTrack.Web
 JWT_EXPIRATION_MINUTES=120
-ALLOWED_ORIGINS=https://<proyecto>.pages.dev
+ALLOWED_ORIGINS=https://front-38m.pages.dev
 ASPNETCORE_ENVIRONMENT=Production
 ENABLE_SWAGGER=false
 ```
 
 No configures `PORT`: Railway lo proporciona. La API escucha en
 `0.0.0.0:$PORT`. Después del despliegue, genera un dominio público y comprueba
-`https://<backend>.up.railway.app/health`.
+`https://back-production-02fc.up.railway.app/health`.
+
+El dominio público actual de la API es:
+
+```text
+https://back-production-02fc.up.railway.app
+```
+
+El proxy público actual de MySQL es `reseau.proxy.rlwy.net:42341`. No se
+configura en el frontend ni se guarda en el código de conexión: dentro de
+Railway la API debe seguir usando las referencias `MYSQL*` del servicio MySQL.
 
 Para generar `JWT_SECRET` en PowerShell:
 
